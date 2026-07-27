@@ -54,9 +54,9 @@ export async function POST(request: Request) {
       "problemCount": número total de críticas ou problemas
     }`
 
-    // 4. Chamar o Gemini (Gemini 2.0 Flash)
+    // 4. Chamar o Gemini
     const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-flash-latest',
         contents: prompt,
         config: {
           responseMimeType: 'application/json'
