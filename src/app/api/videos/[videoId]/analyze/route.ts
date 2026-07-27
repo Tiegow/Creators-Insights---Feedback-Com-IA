@@ -5,7 +5,7 @@ import { Client } from '@upstash/qstash'
 
 export async function POST(
   request: Request,
-  { params }: { params: { videoId: string } }
+  { params }: { params: Promise<{ videoId: string }> }
 ) {
   try {
     const session = await auth()
@@ -14,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const videoId = params.videoId
+    const { videoId } = await params
 
     if (!videoId) {
       return NextResponse.json({ error: 'Video ID is required' }, { status: 400 })
