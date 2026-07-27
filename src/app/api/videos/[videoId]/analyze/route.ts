@@ -7,6 +7,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ videoId: string }> }
 ) {
+  let videoIdToUpdate = null
   try {
     const session = await auth()
     
@@ -24,6 +25,10 @@ export async function POST(
     const video = await prisma.video.findUnique({
       where: { youtubeId: videoId }
     })
+    
+    if (video) {
+      videoIdToUpdate = video.id
+    }
 
     if (!video) {
       return NextResponse.json({ error: 'Vídeo não encontrado no sistema. Sincronize os comentários primeiro.' }, { status: 404 })
@@ -67,6 +72,19 @@ export async function POST(
     
   } catch (error: any) {
     console.error('Erro ao despachar análise:', error)
+
+    // Atualiza o banco para ERROR caso o QStash falhe ou rejeite a URL
+    if (videoIdToUpdate) {
+      try {
+        await prisma.analysis.update({
+          where: { videoId: videoIdToUpdate },
+          data: { status: 'ERROR' }
+        })
+      } catch (dbError) {
+        console.error('Falha ao atualizar fallback de erro no DB:', dbError)
+      }
+    }
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
