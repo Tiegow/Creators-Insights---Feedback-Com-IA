@@ -2,24 +2,28 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { GoogleGenAI } from '@google/genai'
 
+export const maxDuration = 60 // Permite até 60 segundos na Vercel 
+
 export async function POST(request: Request) {
+  let videoIdToUpdate = null
   try {
-    const body = await request.json()
-    const { videoId } = body
+    const { videoId } = await request.json()
+    videoIdToUpdate = videoId
 
     if (!videoId) {
-      return NextResponse.json({ error: 'Video ID missing' }, { status: 400 })
+      return NextResponse.json({ error: 'Video ID is required' }, { status: 400 })
     }
 
-    // 1. Buscar os comentários que já estão salvos no banco para este vídeo
+    // 1. Buscar os comentários do vídeo no banco
     const comments = await prisma.comment.findMany({
       where: { videoId }
     })
 
-    if (comments.length === 0) {
+    if (!comments || comments.length === 0) {
+      // Se não tem comentários, marca como completo mas sem dados
       await prisma.analysis.update({
         where: { videoId },
-        data: { status: 'ERROR' }
+        data: { status: 'COMPLETED' }
       })
       return NextResponse.json({ error: 'No comments found to analyze' }, { status: 400 })
     }
@@ -33,7 +37,8 @@ export async function POST(request: Request) {
     }
 
     const ai = new GoogleGenAI({ apiKey })
-    
+
+    // 3. Montar o Prompt para estruturar o JSON
     const prompt = `Você é um analista de dados experiente. Analise a seguinte lista de comentários de um vídeo do YouTube.
     
     Comentários:
@@ -49,20 +54,32 @@ export async function POST(request: Request) {
       "problemCount": número total de críticas ou problemas
     }`
 
+    // 4. Chamar o Gemini (Gemini 2.5 Flash)
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      }
+        model: 'gemini-2.5-flash',
+        contents: prompt,
     })
 
-    const jsonText = response.text || ''
-    if (!jsonText) throw new Error("A resposta do Gemini veio vazia")
+    const text = response.text || ''
     
-    const result = JSON.parse(jsonText.replace(/```json\n|```/g, ''))
+    // Limpar markdown de JSON (```json ... ```) se houver
+    let jsonText = text
+    const match = text.match(/```json\n([\s\S]*?)\n```/)
+    if (match) {
+      jsonText = match[1]
+    } else {
+      jsonText = jsonText.replace(/```json\n|```/g, '')
+    }
+    
+    let result
+    try {
+      result = JSON.parse(jsonText.trim())
+    } catch (parseError) {
+      console.error("Falha ao fazer parse do JSON:", jsonText)
+      throw new Error("Gemini não retornou um JSON válido")
+    }
 
-    // 3. Atualizar a análise no PostgreSQL com o status COMPLETED
+    // 5. Salvar o resultado no banco
     await prisma.analysis.update({
       where: { videoId },
       data: {
@@ -80,6 +97,19 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Webhook Error:', error)
+    
+    // Atualiza o banco para ERROR caso o processamento falhe
+    if (videoIdToUpdate) {
+      try {
+        await prisma.analysis.update({
+          where: { videoId: videoIdToUpdate },
+          data: { status: 'ERROR' }
+        })
+      } catch (dbError) {
+        console.error('Failed to update status to ERROR', dbError)
+      }
+    }
+    
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
