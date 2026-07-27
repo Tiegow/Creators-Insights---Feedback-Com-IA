@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma'
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
+import { AutoRefresh } from '@/components/dashboard/AutoRefresh'
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -14,6 +15,9 @@ export default async function DashboardPage() {
     include: { analysis: true },
     orderBy: { createdAt: 'desc' }
   })
+
+  // Checa se há alguma análise rodando no background. Se houver, a página será auto-recarregada (Polling)
+  const hasPendingAnalysis = videos.some(v => v.analysis?.status === 'PENDING')
 
   const totalVideos = videos.length
   const totalComments = await prisma.comment.count({
@@ -62,6 +66,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
+      {/* Se houver análises pendentes, ativa o Polling a cada 3 segundos */}
+      {hasPendingAnalysis && <AutoRefresh intervalMs={3000} />}
+      
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-1">Visão Geral</h1>
