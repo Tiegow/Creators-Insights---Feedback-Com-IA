@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No comments found to analyze' }, { status: 400 })
     }
 
-    const commentsText = comments.map(c => `- ${c.text}`).join('\n')
+    const commentsText = comments.map((c: any) => `- ${c.text}`).join('\n')
 
     // 2. Inicializar a SDK do Gemini
     const apiKey = process.env.GEMINI_API_KEY

@@ -76,7 +76,7 @@ export default async function VideoReportPage({ params }: { params: Promise<{ vi
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {video.comments.map(c => (
+        {video.comments.map((c: any) => (
           <div key={c.id} className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-violet-500/30 transition-colors">
             <div className="flex items-center gap-3 mb-3">
               {c.authorProfileImageUrl && <img src={c.authorProfileImageUrl} alt="autor" className="w-8 h-8 rounded-full" />}
