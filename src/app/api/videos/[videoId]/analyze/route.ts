@@ -50,7 +50,10 @@ export async function POST(
     if (!qstashToken) {
        console.warn("QSTASH_TOKEN ausente. Configure no .env para funcionar em produção.")
     } else {
-       const client = new Client({ token: qstashToken })
+       const client = new Client({ 
+         token: qstashToken,
+         baseUrl: process.env.QSTASH_URL || "https://qstash.upstash.io"
+       })
        
        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
        const webhookUrl = `${appUrl}/api/webhooks/analyze-video`
