@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   })
 
   // Checa se há alguma análise rodando no background. Se houver, a página será auto-recarregada (Polling)
-  const hasPendingAnalysis = videos.some(v => v.analysis?.status === 'PENDING')
+  const hasPendingAnalysis = videos.some((v: any) => v.analysis?.status === 'PENDING')
 
   const totalVideos = videos.length
   const totalComments = await prisma.comment.count({
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                 </td>
               </tr>
             )}
-            {videos.map(v => (
+            {videos.map((v: any) => (
               <tr key={v.id} className="hover:bg-white/5 transition-colors group">
                 <td className="px-6 py-4 font-medium text-slate-200 flex items-center gap-3">
                   {v.thumbnail && <img src={v.thumbnail} alt="thumb" className="w-12 h-8 object-cover rounded" />}
