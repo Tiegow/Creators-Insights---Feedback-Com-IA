@@ -72,22 +72,66 @@ export default async function VideoReportPage({ params }: { params: Promise<{ vi
 
       <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
         <MessageSquare className="w-5 h-5 text-violet-400" />
-        Destaques (Comentários Brutos)
+        Destaques Separados por Sentimento
       </h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {video.comments.map((c: any) => (
-          <div key={c.id} className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-violet-500/30 transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              {c.authorProfileImageUrl && <img src={c.authorProfileImageUrl} alt="autor" className="w-8 h-8 rounded-full" />}
-              <span className="font-medium text-sm text-slate-300">{c.authorName}</span>
-            </div>
-            <p className="text-slate-200 text-sm">{c.text}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Positivos */}
+        <div>
+          <h3 className="text-emerald-400 font-semibold mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+            Destaques Positivos
+          </h3>
+          <div className="space-y-3">
+            {video.analysis.positiveHighlights && video.analysis.positiveHighlights.length > 0 ? (
+              video.analysis.positiveHighlights.map((text: string, i: number) => (
+                <div key={i} className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 hover:border-emerald-500/30 transition-colors">
+                  <p className="text-emerald-100 text-sm">{text}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-slate-500 text-sm">Nenhum destaque positivo registrado.</p>
+            )}
           </div>
-        ))}
-        {video.comments.length === 0 && (
-          <p className="text-slate-400">Nenhum comentário registrado.</p>
-        )}
+        </div>
+
+        {/* Neutros */}
+        <div>
+          <h3 className="text-slate-300 font-semibold mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+            Destaques Neutros
+          </h3>
+          <div className="space-y-3">
+            {video.analysis.neutralHighlights && video.analysis.neutralHighlights.length > 0 ? (
+              video.analysis.neutralHighlights.map((text: string, i: number) => (
+                <div key={i} className="p-4 rounded-xl bg-slate-500/5 border border-slate-500/10 hover:border-slate-500/30 transition-colors">
+                  <p className="text-slate-200 text-sm">{text}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-slate-500 text-sm">Nenhum destaque neutro registrado.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Negativos */}
+        <div>
+          <h3 className="text-rose-400 font-semibold mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-rose-500"></div>
+            Pontos de Atenção / Negativos
+          </h3>
+          <div className="space-y-3">
+            {video.analysis.negativeHighlights && video.analysis.negativeHighlights.length > 0 ? (
+              video.analysis.negativeHighlights.map((text: string, i: number) => (
+                <div key={i} className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 hover:border-rose-500/30 transition-colors">
+                  <p className="text-rose-100 text-sm">{text}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-slate-500 text-sm">Nenhum destaque negativo registrado.</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

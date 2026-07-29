@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { AutoRefresh } from '@/components/dashboard/AutoRefresh'
+import { SyncForm } from '@/components/dashboard/SyncForm'
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -13,7 +14,8 @@ export default async function DashboardPage() {
   const videos = await prisma.video.findMany({
     where: { userId },
     include: { analysis: true },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    take: 6
   })
 
   // Checa se há alguma análise rodando no background. Se houver, a página será auto-recarregada (Polling)
@@ -23,27 +25,6 @@ export default async function DashboardPage() {
   const totalComments = await prisma.comment.count({
     where: { video: { userId } }
   })
-
-  // Sync action (Server Action)
-  async function syncVideo(formData: FormData) {
-    'use server'
-    const videoId = formData.get('videoId') as string
-    if (!videoId) return
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const headersList = await headers()
-    
-    await fetch(`${appUrl}/api/youtube/comments`, {
-      method: 'POST',
-      body: JSON.stringify({ videoId }),
-      headers: { 
-        'Content-Type': 'application/json',
-        'Cookie': headersList.get('cookie') || ''
-      }
-    })
-    
-    revalidatePath('/dashboard')
-  }
 
   // Analyze action (Server Action)
   async function analyzeVideo(formData: FormData) {
@@ -75,17 +56,7 @@ export default async function DashboardPage() {
           <p className="text-slate-400">Gerencie seus vídeos e analise os comentários.</p>
         </div>
         
-        <form action={syncVideo} className="flex gap-2">
-          <input 
-            name="videoId" 
-            placeholder="Cole o ID do YouTube..." 
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-500 transition-colors"
-          />
-          <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-medium transition-all shadow-[0_0_20px_4px_rgba(139,92,246,0.2)] hover:shadow-[0_0_25px_6px_rgba(139,92,246,0.3)] hover:scale-105">
-            <Play className="w-5 h-5" />
-            Sincronizar
-          </button>
-        </form>
+        <SyncForm />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -106,10 +77,15 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
-        <Video className="w-5 h-5 text-violet-400" />
-        Vídeos Recentes
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+          <Video className="w-5 h-5 text-violet-400" />
+          Vídeos Recentes
+        </h2>
+        <Link href="/dashboard/videos" className="text-sm font-medium text-violet-400 hover:text-violet-300 transition-colors">
+          Ver todos os vídeos
+        </Link>
+      </div>
       
       <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
         <table className="w-full text-left text-sm whitespace-nowrap">

@@ -44,14 +44,17 @@ export async function POST(request: Request) {
     Comentários:
     ${commentsText}
     
-    Sua tarefa é contar e classificar. Retorne ESTRITAMENTE um objeto JSON válido (sem formatação markdown extra, só o JSON) com esta estrutura exata:
+    Sua tarefa é contar, classificar e selecionar destaques. Retorne ESTRITAMENTE um objeto JSON válido (sem formatação markdown extra, só o JSON) com esta estrutura exata:
     {
       "sentimentPositive": número total de comentários positivos,
       "sentimentNeutral": número total de comentários neutros,
       "sentimentNegative": número total de comentários negativos,
       "suggestionCount": número total de comentários sugerindo conteúdos ou ideias,
       "questionCount": número total de dúvidas,
-      "problemCount": número total de críticas ou problemas
+      "problemCount": número total de críticas ou problemas,
+      "positiveHighlights": [array com até 3 comentários reais positivos que mais se destacam],
+      "neutralHighlights": [array com até 3 comentários reais neutros que mais se destacam],
+      "negativeHighlights": [array com até 3 comentários reais negativos que mais se destacam]
     }`
 
     // 4. Chamar o Gemini
@@ -93,6 +96,9 @@ export async function POST(request: Request) {
         suggestionCount: result.suggestionCount || 0,
         questionCount: result.questionCount || 0,
         problemCount: result.problemCount || 0,
+        positiveHighlights: Array.isArray(result.positiveHighlights) ? result.positiveHighlights : [],
+        neutralHighlights: Array.isArray(result.neutralHighlights) ? result.neutralHighlights : [],
+        negativeHighlights: Array.isArray(result.negativeHighlights) ? result.negativeHighlights : [],
       }
     })
 

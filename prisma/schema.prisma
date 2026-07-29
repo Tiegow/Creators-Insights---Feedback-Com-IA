@@ -95,6 +95,11 @@ model Analysis {
   questionCount       Int      @default(0)
   problemCount        Int      @default(0)
 
+  // Highlights (Array de Strings no PostgreSQL)
+  positiveHighlights  String[]
+  neutralHighlights   String[]
+  negativeHighlights  String[]
+
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
