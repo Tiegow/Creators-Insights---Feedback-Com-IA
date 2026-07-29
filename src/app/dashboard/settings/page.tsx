@@ -36,7 +36,7 @@ export default async function SettingsPage() {
         </div>
 
         <div className="pt-8 border-t border-white/10">
-          <h2 className="text-xl font-semibold mb-2 text-rose-400">Zona de Perigo</h2>
+          <h2 className="text-xl font-semibold mb-2 text-rose-400">Logout</h2>
           <p className="text-slate-400 text-sm mb-6">Encerrar sua sessão no dispositivo atual.</p>
           
           <form action={async () => {
